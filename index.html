@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Feedbacks Pessoais</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* Custom CSS for elements that need more specific styling */
+      .file-upload {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+      }
+      .file-upload input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+      }
+      .media-preview {
+        transition: all 0.3s ease;
+      }
+      .media-preview:hover {
+        transform: scale(1.03);
+      }
+      .star-rating input {
+        display: none;
+      }
+      .star-rating label {
+        font-size: 1.5rem;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+      .star-rating input:checked ~ label,
+      .star-rating label:hover,
+      .star-rating label:hover ~ label {
+        color: #f8d64e;
+      }
+      .progress-ring__circle {
+        transition: stroke-dashoffset 0.35s;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+      }
+      .toast {
+        animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 flex items-center">
+              <i class="fas fa-comment-alt text-2xl mr-2"></i>
+              <span class="text-xl font-bold">FeedbackPessoal</span>
+            </div>
+            <div class="hidden md:ml-6 md:flex md:space-x-8">
+              <a
+                href="#"
+                class="border-indigo-500 text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                id="dashboard-link"
+              >
+                Dashboard
+              </a>
+              <a
+                href="#"
+                class="border-transparent text-white hover:border-gray-300 hover:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                id="give-feedback-link"
+              >
+                Dar Feedback
+              </a>
+              <a
+                href="#"
+                class="border-transparent text-white hover:border-gray-300 hover:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                id="upload-link"
+              >
+                Enviar Mídia
+              </a>
+            </div>
+          </div>
+          <div class="hidden md:ml-4 md:flex md:items-center">
+            <div class="ml-3 relative">
+              <div>
+                <button
+                  type="button"
+                  class="bg-indigo-600 rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  id="user-menu-button"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                >
+                  <span class="sr-only">Abrir menu de usuário</span>
+                  <img
+                    class="h-8 w-8 rounded-full"
+                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                    alt=""
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="-mr-2 flex items-center md:hidden">
+            <button
+              type="button"
+              class="bg-indigo-600 inline-flex items-center justify-center p-2 rounded-md text-white hover:text-gray-300 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              id="mobile-menu-button"
+            >
+              <span class="sr-only">Abrir menu principal</span>
+              <i class="fas fa-bars"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div class="hidden md:hidden" id="mobile-menu">
+        <div class="pt-2 pb-3 space-y-1">
+          <a
+            href="#"
+            class="bg-indigo-700 border-indigo-500 text-white block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+            >Dashboard</a
+          >
+          <a
+            href="#"
+            class="border-transparent text-white hover:bg-indigo-500 hover:border-gray-300 hover:text-white block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+            >Dar Feedback</a
+          >
+          <a
+            href="#"
+            class="border-transparent text-white hover:bg-indigo-500 hover:border-gray-300 hover:text-white block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+            >Enviar Mídia</a
+          >
+        </div>
+        <div class="pt-4 pb-3 border-t border-indigo-700">
+          <div class="flex items-center px-4">
+            <div class="flex-shrink-0">
+              <img
+                class="h-10 w-10 rounded-full"
+                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                alt=""
+              />
+            </div>
+            <div class="ml-3">
+              <div class="text-base font-medium text-white">João Silva</div>
+              <div class="text-sm font-medium text-indigo-200">
+                joao@exemplo.com
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 space-y-1">
+            <a
+              href="#"
+              class="block px-4 py-2 text-base font-medium text-white hover:bg-indigo-500"
+              >Seu Perfil</a
+            >
+            <a
+              href="#"
+              class="block px-4 py-2 text-base font-medium text-white hover:bg-indigo-500"
+              >Configurações</a
+            >
+            <a
+              href="#"
+              class="block px-4 py-2 text-base font-medium text-white hover:bg-indigo-500"
+              >Sair</a
+            >
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Toast Notification (hidden by default) -->
+    <div
+      id="toast-notification"
+      class="hidden fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg toast"
+    >
+      <div class="flex items-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="toast-message">Feedback enviado com sucesso!</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <!-- Dashboard Section (default view) -->
+      <div id="dashboard-section">
+        <div class="px-4 py-6 sm:px-0">
+          <div class="border-b border-gray-200 pb-5">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">
+              Meu Progresso
+            </h3>
+          </div>
+
+          <!-- Progress Cards -->
+          <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <!-- Unlock Progress Card -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                    <i class="fas fa-lock-open text-white text-xl"></i>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dt class="text-sm font-medium text-gray-500 truncate">
+                      Feedbacks necessários
+                    </dt>
+                    <dd class="flex items-baseline">
+                      <div class="text-2xl font-semibold text-gray-900">
+                        2/3
+                      </div>
+                      <div
+                        class="ml-2 flex items-baseline text-sm font-semibold text-green-600"
+                      >
+                        <span class="sr-only">Increased by</span>
+                        66%
+                      </div>
+                    </dd>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      class="bg-indigo-600 h-2.5 rounded-full"
+                      style="width: 66%"
+                    ></div>
+                  </div>
+                  <p class="mt-1 text-sm text-gray-500">
+                    Dê mais 1 feedback para desbloquear envios
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Media Uploaded Card -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                    <i class="fas fa-cloud-upload-alt text-white text-xl"></i>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dt class="text-sm font-medium text-gray-500 truncate">
+                      Mídias enviadas
+                    </dt>
+                    <dd class="text-2xl font-semibold text-gray-900">5</dd>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <a
+                    href="#"
+                    class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    Ver todas
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feedback Received Card -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                    <i class="fas fa-star text-white text-xl"></i>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dt class="text-sm font-medium text-gray-500 truncate">
+                      Feedbacks recebidos
+                    </dt>
+                    <dd class="text-2xl font-semibold text-gray-900">12</dd>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <a
+                    href="#"
+                    class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    Ver detalhes
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- My Media Section -->
+          <div class="mt-8">
+            <div class="border-b border-gray-200 pb-5">
+              <div class="flex justify-between items-center">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">
+                  Minhas Mídias
+                </h3>
+                <button
+                  id="upload-new-media-btn"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <i class="fas fa-plus mr-2"></i> Nova Mídia
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              <!-- Media Card 1 -->
+              <div
+                class="bg-white overflow-hidden shadow rounded-lg media-preview"
+              >
+                <div class="relative pb-2/3 h-48">
+                  <img
+                    class="absolute h-full w-full object-cover"
+                    src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2850&q=80"
+                    alt=""
+                  />
+                </div>
+                <div class="px-4 py-4">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-gray-900 truncate">
+                      Minha apresentação
+                    </h4>
+                    <span
+                      class="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-800"
+                      >Foto</span
+                    >
+                  </div>
+                  <div class="mt-2 flex justify-between items-center">
+                    <div class="flex items-center">
+                      <i class="fas fa-star text-yellow-400"></i>
+                      <span class="ml-1 text-sm text-gray-600">4.2 (5)</span>
+                    </div>
+                    <button
+                      class="text-sm text-indigo-600 hover:text-indigo-500"
+                    >
+                      Ver feedbacks
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Media Card 2 -->
+              <div
+                class="bg-white overflow-hidden shadow rounded-lg media-preview"
+              >
+                <div
+                  class="relative pb-2/3 h-48 bg-gray-200 flex items-center justify-center"
+                >
+                  <i class="fas fa-play-circle text-4xl text-gray-400"></i>
+                </div>
+                <div class="px-4 py-4">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-gray-900 truncate">
+                      Meu discurso de formatura
+                    </h4>
+                    <span
+                      class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800"
+                      >Vídeo</span
+                    >
+                  </div>
+                  <div class="mt-2 flex justify-between items-center">
+                    <div class="flex items-center">
+                      <i class="fas fa-star text-yellow-400"></i>
+                      <span class="ml-1 text-sm text-gray-600">3.8 (7)</span>
+                    </div>
+                    <button
+                      class="text-sm text-indigo-600 hover:text-indigo-500"
+                    >
+                      Ver feedbacks
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Media Card 3 -->
+              <div
+                class="bg-white overflow-hidden shadow rounded-lg media-preview"
+              >
+                <div
+                  class="relative pb-2/3 h-48 bg-gray-200 flex items-center justify-center"
+                >
+                  <i class="fas fa-music text-4xl text-gray-400"></i>
+                </div>
+                <div class="px-4 py-4">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-gray-900 truncate">
+                      Minha música original
+                    </h4>
+                    <span
+                      class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
+                      >Áudio</span
+                    >
+                  </div>
+                  <div class="mt-2 flex justify-between items-center">
+                    <div class="flex items-center">
+                      <i class="fas fa-star text-yellow-400"></i>
+                      <span class="ml-1 text-sm text-gray-600">4.5 (3)</span>
+                    </div>
+                    <button
+                      class="text-sm text-indigo-600 hover:text-indigo-500"
+                    >
+                      Ver feedbacks
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Feedbacks Given Section -->
+          <div class="mt-8">
+            <div class="border-b border-gray-200 pb-5">
+              <h3 class="text-lg font-medium leading-6 text-gray-900">
+                Feedbacks que Dei Recentemente
+              </h3>
+            </div>
+
+            <div class="mt-6">
+              <ul class="divide-y divide-gray-200">
+                <!-- Feedback Item 1 -->
+                <li class="py-4">
+                  <div class="flex space-x-3">
+                    <img
+                      class="h-10 w-10 rounded-full"
+                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                      alt=""
+                    />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex justify-between">
+                        <p class="text-sm font-medium text-gray-900">
+                          Maria Souza
+                        </p>
+                        <div class="flex">
+                          <i class="fas fa-star text-yellow-400"></i>
+                          <i class="fas fa-star text-yellow-400"></i>
+                          <i class="fas fa-star text-yellow-400"></i>
+                          <i class="fas fa-star text-yellow-400"></i>
+                          <i class="fas fa-star text-gray-300"></i>
+                        </div>
+                      </div>
+                      <p class="text-sm text-gray-600">
+                        "Ótima apresentação! Sua postura é muito confiante,
+                        apenas fale um pouco mais devagar nas partes
+                        importantes."
+                      </p>
+                      <p class="text-xs text-gray-500 mt-1">
+                        3 dias atrás · Apresentação
+                      </p>
+                    </div>
+                  </div>
+                </li>
+
+                <!-- Feedback Item 2 -->
+                <li class="py-4">
+                  <div class="flex space-x-3">
+                    <img
+                      class="h-10 w-10 rounded-full"
+                      src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                      alt=""
+                    />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex justify-between">
+                        <p class="text-sm font-medium text-gray-900">
+                          Carlos Oliveira
+                        </p>
+                        <div class="flex">
+                          <i class="fas fa-star text-yellow-400"></i>
+                          <i class="fas fa-star text-yellow-400"></i>
+                          <i class="fas fa-star text-yellow-400"></i>
+                          <i class="fas fa-star text-yellow-400"></i>
+                          <i class="fas fa-star text-yellow-400"></i>
+                        </div>
+                      </div>
+                      <p class="text-sm text-gray-600">
+                        "Seu canto é incrível! A afinação é perfeita e a emoção
+                        que você coloca na música é contagiante."
+                      </p>
+                      <p class="text-xs text-gray-500 mt-1">
+                        1 semana atrás · Canto
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+              <div class="mt-4">
+                <a
+                  href="#"
+                  class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  Ver todos os feedbacks que dei
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Media Section (hidden by default) -->
+      <div id="upload-section" class="hidden px-4 py-6 sm:px-0">
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="border-b border-gray-200 pb-5">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">
+              Enviar Nova Mídia
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Compartilhe vídeos, fotos ou áudios para receber feedbacks.
+            </p>
+          </div>
+
+          <form class="mt-6 space-y-6">
+            <div>
+              <label
+                for="media-type"
+                class="block text-sm font-medium text-gray-700"
+                >Tipo de Mídia</label
+              >
+              <select
+                id="media-type"
+                name="media-type"
+                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              >
+                <option value="video">Vídeo</option>
+                <option value="photo">Foto</option>
+                <option value="audio">Áudio</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                for="media-title"
+                class="block text-sm font-medium text-gray-700"
+                >Título</label
+              >
+              <input
+                type="text"
+                id="media-title"
+                name="media-title"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Ex: Minha apresentação de negócios"
+              />
+            </div>
+
+            <div>
+              <label
+                for="media-description"
+                class="block text-sm font-medium text-gray-700"
+                >Descrição (opcional)</label
+              >
+              <textarea
+                id="media-description"
+                name="media-description"
+                rows="3"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Adicione detalhes sobre sua mídia..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label
+                for="media-category"
+                class="block text-sm font-medium text-gray-700"
+                >Categoria</label
+              >
+              <select
+                id="media-category"
+                name="media-category"
+                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              >
+                <option value="appearance">Aparência</option>
+                <option value="singing">Canto</option>
+                <option value="speech">Fala</option>
+                <option value="presentation">Apresentação</option>
+                <option value="other">Outros</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700"
+                >Arquivo</label
+              >
+              <div
+                class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"
+              >
+                <div class="space-y-1 text-center">
+                  <svg
+                    class="mx-auto h-12 w-12 text-gray-400"
+                    stroke="currentColor"
+                    fill="none"
+                    viewBox="0 0 48 48"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  <div class="flex text-sm text-gray-600">
+                    <label
+                      for="file-upload"
+                      class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                    >
+                      <span>Carregue um arquivo</span>
+                      <input
+                        id="file-upload"
+                        name="file-upload"
+                        type="file"
+                        class="sr-only"
+                      />
+                    </label>
+                    <p class="pl-1">ou arraste e solte</p>
+                  </div>
+                  <p class="text-xs text-gray-500">
+                    MP4, MOV, MP3, WAV, JPG ou PNG até 100MB
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div id="media-preview" class="hidden">
+              <label class="block text-sm font-medium text-gray-700"
+                >Preview</label
+              >
+              <div class="mt-1 p-4 border border-gray-300 rounded-md">
+                <div id="video-preview" class="hidden">
+                  <video controls class="w-full rounded-lg">
+                    <source src="" type="video/mp4" />
+                    Seu navegador não suporta vídeos HTML5.
+                  </video>
+                </div>
+                <div id="image-preview" class="hidden">
+                  <img src="" alt="Preview" class="w-full rounded-lg" />
+                </div>
+                <div id="audio-preview" class="hidden">
+                  <audio controls class="w-full">
+                    <source src="" type="audio/mpeg" />
+                    Seu navegador não suporta áudio HTML5.
+                  </audio>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button
+                type="button"
+                class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Enviar Mídia
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Give Feedback Section (hidden by default) -->
+      <div id="give-feedback-section" class="hidden px-4 py-6 sm:px-0">
+        <div class="border-b border-gray-200 pb-5">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">
+            Dar Feedback
+          </h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Ajude outros usuários com feedbacks honestos e construtivos.
+          </p>
+        </div>
+
+        <div class="mt-6">
+          <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul class="divide-y divide-gray-200">
+              <!-- Media Item 1 -->
+              <li>
+                <div class="px-4 py-4 sm:px-6">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                      <img
+                        class="h-10 w-10 rounded-full"
+                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                        alt=""
+                      />
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-indigo-600 truncate">
+                          Ana Carolina
+                        </p>
+                        <p class="text-sm text-gray-500">
+                          Apresentação de negócios
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800"
+                        >Vídeo</span
+                      >
+                      <button
+                        class="ml-3 inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 give-feedback-btn"
+                        data-media-id="1"
+                      >
+                        Dar Feedback
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Media Item 2 -->
+              <li>
+                <div class="px-4 py-4 sm:px-6">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                      <img
+                        class="h-10 w-10 rounded-full"
+                        src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                        alt=""
+                      />
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-indigo-600 truncate">
+                          Pedro Henrique
+                        </p>
+                        <p class="text-sm text-gray-500">
+                          Fotografia profissional
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-800"
+                        >Foto</span
+                      >
+                      <button
+                        class="ml-3 inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 give-feedback-btn"
+                        data-media-id="2"
+                      >
+                        Dar Feedback
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Media Item 3 -->
+              <li>
+                <div class="px-4 py-4 sm:px-6">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                      <img
+                        class="h-10 w-10 rounded-full"
+                        src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                        alt=""
+                      />
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-indigo-600 truncate">
+                          Luiza Mendes
+                        </p>
+                        <p class="text-sm text-gray-500">Cover de música</p>
+                      </div>
+                    </div>
+                    <div class="flex">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
+                        >Áudio</span
+                      >
+                      <button
+                        class="ml-3 inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 give-feedback-btn"
+                        data-media-id="3"
+                      >
+                        Dar Feedback
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="mt-4 flex justify-between items-center">
+            <button
+              class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <i class="fas fa-sync-alt mr-2"></i> Carregar mais
+            </button>
+            <p class="text-sm text-gray-500">
+              Mostrando 3 de 15 mídias disponíveis
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Modal (hidden by default) -->
+      <div
+        id="feedback-modal"
+        class="hidden fixed z-10 inset-0 overflow-y-auto"
+        aria-labelledby="modal-title"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div
+          class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        >
+          <div
+            class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+            aria-hidden="true"
+          ></div>
+
+          <span
+            class="hidden sm:inline-block sm:align-middle sm:h-screen"
+            aria-hidden="true"
+            >&#8203;</span
+          >
+
+          <div
+            class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+          >
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div class="sm:flex sm:items-start">
+                <div
+                  class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full"
+                >
+                  <h3
+                    class="text-lg leading-6 font-medium text-gray-900"
+                    id="modal-title"
+                  >
+                    Dar Feedback para
+                    <span id="feedback-user-name">Ana Carolina</span>
+                  </h3>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">
+                      Assista/ouça/veja a mídia abaixo e forneça um feedback
+                      honesto e construtivo.
+                    </p>
+
+                    <!-- Media Player -->
+                    <div class="mt-4 bg-gray-100 rounded-lg p-4">
+                      <div id="video-player" class="hidden">
+                        <video controls class="w-full rounded-lg">
+                          <source
+                            src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"
+                            type="video/mp4"
+                          />
+                          Seu navegador não suporta vídeos HTML5.
+                        </video>
+                      </div>
+                      <div id="image-player" class="hidden">
+                        <img
+                          src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2850&q=80"
+                          alt="Media to review"
+                          class="w-full rounded-lg"
+                        />
+                      </div>
+                      <div id="audio-player" class="hidden">
+                        <audio controls class="w-full">
+                          <source
+                            src="https://sample-videos.com/audio/mp3/crowd-cheering.mp3"
+                            type="audio/mpeg"
+                          />
+                          Seu navegador não suporta áudio HTML5.
+                        </audio>
+                      </div>
+                    </div>
+
+                    <!-- Rating Form -->
+                    <div class="mt-4">
+                      <label class="block text-sm font-medium text-gray-700"
+                        >Avaliação</label
+                      >
+                      <div class="mt-1 star-rating">
+                        <input
+                          type="radio"
+                          id="star5"
+                          name="rating"
+                          value="5"
+                        />
+                        <label for="star5" title="Excelente">5 stars</label>
+                        <input
+                          type="radio"
+                          id="star4"
+                          name="rating"
+                          value="4"
+                        />
+                        <label for="star4" title="Muito bom">4 stars</label>
+                        <input
+                          type="radio"
+                          id="star3"
+                          name="rating"
+                          value="3"
+                        />
+                        <label for="star3" title="Bom">3 stars</label>
+                        <input
+                          type="radio"
+                          id="star2"
+                          name="rating"
+                          value="2"
+                        />
+                        <label for="star2" title="Regular">2 stars</label>
+                        <input
+                          type="radio"
+                          id="star1"
+                          name="rating"
+                          value="1"
+                        />
+                        <label for="star1" title="Ruim">1 star</label>
+                      </div>
+                    </div>
+
+                    <!-- Comment Form -->
+                    <div class="mt-4">
+                      <label
+                        for="feedback-comment"
+                        class="block text-sm font-medium text-gray-700"
+                        >Comentário</label
+                      >
+                      <div class="mt-1">
+                        <textarea
+                          id="feedback-comment"
+                          name="feedback-comment"
+                          rows="3"
+                          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md"
+                          placeholder="Seu feedback deve ser construtivo e respeitoso..."
+                        ></textarea>
+                      </div>
+                      <p class="mt-2 text-sm text-gray-500">
+                        Seja específico sobre o que gostou e o que pode ser
+                        melhorado.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse"
+            >
+              <button
+                type="button"
+                id="submit-feedback-btn"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Enviar Feedback
+              </button>
+              <button
+                type="button"
+                id="cancel-feedback-btn"
+                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // Mobile menu toggle
+      document
+        .getElementById("mobile-menu-button")
+        .addEventListener("click", function () {
+          const menu = document.getElementById("mobile-menu");
+          menu.classList.toggle("hidden");
+        });
+
+      // Navigation between sections
+      document
+        .getElementById("dashboard-link")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          showSection("dashboard-section");
+        });
+
+      document
+        .getElementById("give-feedback-link")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          showSection("give-feedback-section");
+        });
+
+      document
+        .getElementById("upload-link")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          showSection("upload-section");
+        });
+
+      document
+        .getElementById("upload-new-media-btn")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          showSection("upload-section");
+        });
+
+      function showSection(sectionId) {
+        // Hide all sections
+        document.getElementById("dashboard-section").classList.add("hidden");
+        document.getElementById("upload-section").classList.add("hidden");
+        document
+          .getElementById("give-feedback-section")
+          .classList.add("hidden");
+
+        // Show the selected section
+        document.getElementById(sectionId).classList.remove("hidden");
+
+        // Update active nav link
+        document.querySelectorAll("nav a").forEach((link) => {
+          link.classList.remove("border-indigo-500", "text-white");
+          link.classList.add(
+            "border-transparent",
+            "text-white",
+            "hover:border-gray-300",
+            "hover:text-gray-100"
+          );
+        });
+
+        if (sectionId === "dashboard-section") {
+          document
+            .getElementById("dashboard-link")
+            .classList.remove(
+              "border-transparent",
+              "text-white",
+              "hover:border-gray-300",
+              "hover:text-gray-100"
+            );
+          document
+            .getElementById("dashboard-link")
+            .classList.add("border-indigo-500", "text-white");
+        } else if (sectionId === "give-feedback-section") {
+          document
+            .getElementById("give-feedback-link")
+            .classList.remove(
+              "border-transparent",
+              "text-white",
+              "hover:border-gray-300",
+              "hover:text-gray-100"
+            );
+          document
+            .getElementById("give-feedback-link")
+            .classList.add("border-indigo-500", "text-white");
+        } else if (sectionId === "upload-section") {
+          document
+            .getElementById("upload-link")
+            .classList.remove(
+              "border-transparent",
+              "text-white",
+              "hover:border-gray-300",
+              "hover:text-gray-100"
+            );
+          document
+            .getElementById("upload-link")
+            .classList.add("border-indigo-500", "text-white");
+        }
+      }
+
+      // File upload preview
+      document
+        .getElementById("file-upload")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const previewContainer = document.getElementById("media-preview");
+          previewContainer.classList.remove("hidden");
+
+          const videoPreview = document.getElementById("video-preview");
+          const imagePreview = document.getElementById("image-preview");
+          const audioPreview = document.getElementById("audio-preview");
+
+          videoPreview.classList.add("hidden");
+          imagePreview.classList.add("hidden");
+          audioPreview.classList.add("hidden");
+
+          if (file.type.startsWith("video/")) {
+            videoPreview.classList.remove("hidden");
+            const videoPlayer = videoPreview.querySelector("video");
+            videoPlayer.querySelector("source").src = URL.createObjectURL(file);
+            videoPlayer.load();
+          } else if (file.type.startsWith("image/")) {
+            imagePreview.classList.remove("hidden");
+            const img = imagePreview.querySelector("img");
+            img.src = URL.createObjectURL(file);
+          } else if (file.type.startsWith("audio/")) {
+            audioPreview.classList.remove("hidden");
+            const audioPlayer = audioPreview.querySelector("audio");
+            audioPlayer.querySelector("source").src = URL.createObjectURL(file);
+            audioPlayer.load();
+          }
+        });
+
+      // Feedback modal
+      document.querySelectorAll(".give-feedback-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const mediaId = this.getAttribute("data-media-id");
+          const modal = document.getElementById("feedback-modal");
+
+          // Set media type in modal (simulating different media types)
+          const videoPlayer = document.getElementById("video-player");
+          const imagePlayer = document.getElementById("image-player");
+          const audioPlayer = document.getElementById("audio-player");
+
+          videoPlayer.classList.add("hidden");
+          imagePlayer.classList.add("hidden");
+          audioPlayer.classList.add("hidden");
+
+          if (mediaId === "1") {
+            videoPlayer.classList.remove("hidden");
+          } else if (mediaId === "2") {
+            imagePlayer.classList.remove("hidden");
+          } else if (mediaId === "3") {
+            audioPlayer.classList.remove("hidden");
+          }
+
+          modal.classList.remove("hidden");
+        });
+      });
+
+      // Close feedback modal
+      document
+        .getElementById("cancel-feedback-btn")
+        .addEventListener("click", function () {
+          document.getElementById("feedback-modal").classList.add("hidden");
+        });
+
+      // Submit feedback
+      document
+        .getElementById("submit-feedback-btn")
+        .addEventListener("click", function () {
+          const rating = document.querySelector('input[name="rating"]:checked');
+          const comment = document.getElementById("feedback-comment").value;
+
+          if (!rating) {
+            alert("Por favor, selecione uma avaliação.");
+            return;
+          }
+
+          if (!comment.trim()) {
+            alert("Por favor, escreva um comentário.");
+            return;
+          }
+
+          // Simulate feedback submission
+          setTimeout(() => {
+            document.getElementById("feedback-modal").classList.add("hidden");
+            showToast("Feedback enviado com sucesso!");
+
+            // Reset form
+            document.getElementById("feedback-comment").value = "";
+            document
+              .querySelectorAll('input[name="rating"]')
+              .forEach((radio) => {
+                radio.checked = false;
+              });
+
+            // Update progress (simulated)
+            const progressText = document.querySelector(
+              ".text-2xl.font-semibold.text-gray-900"
+            );
+            const [current, total] = progressText.textContent
+              .split("/")
+              .map(Number);
+            if (current < total) {
+              progressText.textContent = `${current + 1}/${total}`;
+
+              // Update progress bar
+              const progressBar = document.querySelector(
+                ".bg-indigo-600.h-2.5.rounded-full"
+              );
+              const newWidth = ((current + 1) / total) * 100;
+              progressBar.style.width = `${newWidth}%`;
+
+              // Update progress text
+              if (current + 1 === total) {
+                document.querySelector(
+                  ".mt-1.text-sm.text-gray-500"
+                ).textContent = "Você pode agora enviar suas próprias mídias!";
+              } else {
+                document.querySelector(
+                  ".mt-1.text-sm.text-gray-500"
+                ).textContent = `Dê mais ${
+                  total - (current + 1)
+                } feedback(s) para desbloquear envios`;
+              }
+            }
+          }, 1000);
+        });
+
+      // Show toast notification
+      function showToast(message) {
+        const toast = document.getElementById("toast-notification");
+        document.getElementById("toast-message").textContent = message;
+        toast.classList.remove("hidden");
+
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>
